@@ -1,6 +1,6 @@
 import argparse
 import numpy as np
-from scipy.ndimage.filters import convolve
+from scipy.ndimage import convolve
 from PIL import Image
 from scipy import signal
 
@@ -19,7 +19,7 @@ python metric.py --original_image=<path_to_original_image> --compared_image=<pat
 parser = argparse.ArgumentParser()
 
 # add parser arguments
-parser.add_argument("--orignal-image", "-o", type=str, required=True, help="orignal image file path")
+parser.add_argument("--original-image", "-o", type=str, required=True, help="original image file path")
 parser.add_argument("--compared-image", "-c", type=str, required=True, help="compared image file path")
 parser.add_argument("--metric", "-m", type=str, help="metric", default="all")
 
@@ -40,7 +40,7 @@ def psnr(original, compared):
         compared = np.array(Image.open(compared).convert("RGB"), dtype=np.float32)
 
     mse = np.mean(np.square(original - compared))
-    psnr = np.clip(np.multiply(np.log10(255.0 * 255.0 / mse[mse > 0.0]), 10.0), 0, 99.99)[0]
+    psnr = np.clip(np.multiply(np.log10(255. * 255. / mse[mse > 0.]), 10.), 0., 99.99)[0]
 
     return psnr
 
@@ -61,7 +61,6 @@ def _FSpecialGauss(size, sigma):
         stop -= 1
     
     x, y = np.mgrid[offset + start:stop, offset + start:stop]
-    print(x)
 
     assert len(x) == size
 
@@ -94,10 +93,10 @@ def _SSIMForMultipleScale(img1,
 
     # some expections handling before starting calculating ssim
     if img1.shape != img2.shape:
-        return RuntimeError("Two input images must have the same shape, but got (%s, %s)", img1.shape, img2.shape)
+        raise RuntimeError("Two input images must have the same shape, but got (%s, %s)", img1.shape, img2.shape)
     
     if img1.ndim != 4:
-        return RuntimeError("The input image must be 4-dimentional, but got %d", img1.ndim)
+        raise RuntimeError("The input image must be 4-dimentional, but got %d", img1.ndim)
     
     img1 = img1.astype(np.float64)
     img2 = img2.astype(np.float64)
@@ -114,9 +113,9 @@ def _SSIMForMultipleScale(img1,
         window = np.reshape(_FSpecialGauss(size, sigma), (1, size, size, 1))
         mu1 = signal.fftconvolve(img1, window, mode="valid")
         mu2 = signal.fftconvolve(img2, window, mode="valid")
-        sigma11 = signal.fftconvolve(img1 * img2)
-        sigma12 = signal.fftconvolve(img1 * img2)
-        sigma22 = signal.fftconvolve(img2 * img2)
+        sigma11 = signal.fftconvolve(img1 * img1, window, mode="valid")
+        sigma12 = signal.fftconvolve(img1 * img2, window, mode="valid")
+        sigma22 = signal.fftconvolve(img2 * img2, window, mode="valid")
     else:
         # Empty gauss blur kernel, so no need to convolve
         mu1, mu2 = img1, img2
@@ -166,15 +165,15 @@ def MultiScaleSSIM(img1,
 
     # Handling error first
     if img1.shape != img2.shape:
-        return RuntimeError("Two input images must have the same shape, but got (%s, %s)", img1.shape, img2.shape)
+        raise RuntimeError("Two input images must have the same shape, but got (%s, %s)", img1.shape, img2.shape)
     
     if img1.ndim != 4:
-        return RuntimeError("The input image must be 4-dimentional, but got %d", img1.ndim)
+        raise RuntimeError("The input image must be 4-dimentional, but got %d", img1.ndim)
     
     # default weights are shown in the end of section 3 of based paper
-    weigths = np.array(weights if weigths else [0.0448, 0.2856, 0.3001, 0.2363, 0.1333])
+    weights = np.array(weights if weights else [0.0448, 0.2856, 0.3001, 0.2363, 0.1333])
 
-    levels = weigths.size
+    levels = weights.size
     downsample_filter = np.ones((1, 2, 2, 1)) / 4.0
     im1, im2 = [x.astype(np.float64) for x in [img1, img2]]
     mssim = np.array([])
@@ -201,7 +200,7 @@ def MultiScaleSSIM(img1,
         im1, im2 = [x[:, ::2, ::2, :] for x in filtered]
 
 
-    return (np.prod(mcs[0:level-1] ** weights[0:levels-1]) * (mssim[levels-1] ** weights[levels-1]))
+    return (np.prod(mcs[0:levels-1] ** weights[0:levels-1]) * (mssim[levels-1] ** weights[levels-1]))
 
 def msssim(original, compared):
     """
