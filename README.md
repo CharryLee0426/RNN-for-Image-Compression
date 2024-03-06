@@ -12,10 +12,73 @@ This is the repo of our recurrent neural network for Image Compression optimized
 
 ## 3. Test
 
+0. Environment setup
+    ```bash
+    conda create -n rnn_img_compression python=3.9
+    conda activate rnn_img_compression
+    pip install torch torchvision torchaudio
+    pip install scipy
+    pip install fiftyone
+    sudo apt install imagemagick
+    ```
+
+Assumed that your terminal is in the project root repository.
+1. Get the pre-trained models from Github and put them in the `./checkpoint` folder;
+2. Get the kodak dataset
+    ```bash
+    bash test/get_kodak.sh
+    ```
+3. Encode and decode by using the pre-trained model
+    ```bash
+    bash test/enc_dec.sh
+    ```
+4. Encode and decode by using jpeg
+    ```bash
+    bash test/jpeg.sh
+    ```
+5. Calculate the MS-SSIM
+    ```bash
+    bash test/calc_ssim.sh
+    ```
+6. Draw the rate-distortion curve
+    ```bash
+    python test/draw_rd.py
+    ```
 ## 4. Train
+
+0. Prepare the MS-COCO 2017 dataset
+    ```bash
+    python coco.py
+    ```
+1. Train the model
+    ```bash
+    python train.py -f <yourfilepathtococo>
+    ```
+The in-process training will be saved in the `./checkpoint` folder.
 
 ## 5. Results
 
-## 6. Acknowledgement
+We show the LSTM's performance is better than JPEG's.
 
-## 7. References
+![](./assets/Figure_1.png)
+
+## 6. Conclusion
+
+It is shown that the RNN-based model can outperform JPEG at image compression across most bitrates on the rate-distortion curve on the Kodak dataset images no matter with or without the aid of entropy coding. The model can get 4.3%-8.8% AUC depending on the perceptual metric like MS--SSIM. It shows the potential of using neural network to do image compression task.
+
+## 7. Future Work
+
+1. Update the LSTM to GRU;
+2. Try to use Vision Transformer to replace the RNN;
+3. Try to add entropy coding binary-cnn to get the better performance;
+4. Try to use GDN to replace the ReLU in the model;
+
+## 8. Acknowledgement
+
+
+
+## 9. References
+
+1. The code is based on the paper "End-to-End Optimized Image Compression" by Johannes Ballé, Valero Laparra, Eero P. Simoncelli;
+2. The code is based on the paper "Variational Image Compression with a Scale Hyperprior" by Johannes Ballé, David Minnen, Saurabh Singh, Sung Jin Hwang, Nick Johnston;
+3. The code is based on the paper "Neural Image Compression" by George Toderici, Damien Vincent, Nick Johnston, Sung Jin Hwang, David Minnen, Joel Shor, Michele Covell;
