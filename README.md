@@ -70,8 +70,9 @@ It is shown that the RNN-based model can outperform JPEG at image compression ac
 
 1. Update the LSTM to GRU;
 2. Try to use Vision Transformer to replace the RNN;
-3. Try to add entropy coding binary-cnn to get the better performance;
-4. Try to use GDN to replace the ReLU in the model;
+3. Try to use grand new neural networks;
+4. Try to add entropy coding binary-cnn to get the better performance;
+5. Try to use GDN to replace the ReLU in the model;
 
 ## 8. Acknowledgement
 
